@@ -8,6 +8,7 @@ Ce projet permet d'analyser un texte ou un fichier texte et de générer un nuag
 - Nuage de mots : Affiche un nuage de mots basé sur les mots les plus fréquents du texte analysé.
 - Filtrage des mots vides : Ignore les mots courants comme "le", "la", "de", etc. pendant l'analyse.
 - Normalisation avec Stemmer : Les mots sont réduits à leur racine pour éviter les variations (ex. "mangeant" -> "manger").
+  
 ###Technologies Utilisées
 - PHP : Langage serveur pour le traitement des fichiers et du texte.
 - D3.js : Bibliothèque JavaScript pour générer le nuage de mots.
