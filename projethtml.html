@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse de Texte - Nuage de Mots</title>
+    <style>
+        /* Global styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7fa;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        
+        /* Center content */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Header */
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            color: #007BFF;
+        }
+
+        h2, h3 {
+            color: #4A90E2;
+            text-align: center;
+        }
+
+        /* Form styles */
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        textarea {
+            width: 80%;
+            height: 150px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            resize: none;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        input[type="submit"] {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        /* Wordcloud container */
+        #wordcloud {
+            width: 100%;
+            height: 500px;
+            margin-top: 30px;
+            text-align: center;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            margin-top: 30px;
+            border-radius: 10px;
+        }
+
+        footer a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h1>Analyse de Texte</h1>
+    <h3>Entrez votre texte ou téléchargez un fichier .txt pour générer un nuage de mots</h3>
+
+    <!-- Formulaire de saisie -->
+    <form method="POST" enctype="multipart/form-data">
+        <textarea name="text" placeholder="Entrez ou copiez votre texte ici..."></textarea>
+        
+        <div style="text-align: center;">
+            <label for="file">Ou téléchargez un fichier .txt :</label>
+            <input type="file" name="file" accept=".txt">
+        </div>
+
+        <input type="submit" value="Analyser le texte">
+    </form>
+
+    <!-- Affichage du nuage de mots -->
+    <?php if (!empty($finalWordList)) : ?>
+        <h2>Nuage de Mots :</h2>
+        <div id="wordcloud"></div>
+
+        <script>
+            // Les données PHP passées sous format JSON
+            const wordData = <?php echo $finalWordListJson; ?>;
+
+            // Préparation des données pour D3.js
+            const wordCloudData = Object.keys(wordData).map(key => ({
+                text: key,
+                size: wordData[key]
+            }));
+
+            // Paramètres du nuage de mots
+            const width = 800;
+            const height = 500;
+
+            // Créer une échelle linéaire pour la taille des mots
+            const sizeScale = d3.scalePow()
+                .exponent(0.5)
+                .domain([d3.min(wordCloudData, d => d.size), d3.max(wordCloudData, d => d.size)])
+                .range([20, 100]);
+
+            const fill = d3.scaleOrdinal(d3.schemeCategory10);
+
+            // Créer un nuage de mots avec D3.js et d3-cloud
+            d3.layout.cloud()
+                .size([width, height])
+                .words(wordCloudData.map(function(d) {
+                    return {text: d.text, size: sizeScale(d.size)};
+                }))
+                .padding(5)
+                .font("Impact")
+                .fontSize(function(d) { return d.size; })
+                .on("end", drawCloud)
+                .start();
+
+            function drawCloud(words) {
+                d3.select("#wordcloud").append("svg")
+                    .attr("width", width)
+                    .attr("height", height)
+                .append("g")
+                    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+                .selectAll("text")
+                    .data(words)
+                .enter().append("text")
+                    .style("font-size", function(d) { return d.size + "px"; })
+                    .style("font-family", "Impact")
+                    .style("fill", function(d, i) { return fill(i); })
+                    .attr("text-anchor", "middle")
+                    .attr("transform", function(d) {
+                        return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+                    })
+                    .text(function(d) { return d.text; });
+            }
+        </script>
+    <?php elseif (isset($error)) : ?>
+        <p style="color: red; text-align: center;"><?php echo $error; ?></p>
+    <?php endif; ?>
+
+</div>
+
+<!-- Footer -->
+<footer>
+    <p>&copy; traitement du text(stemmation) <a href="https://github.com/karimed2/traitement_text">Voir sur GitHub</a></p>
+</footer>
+
+</body>
+</html>

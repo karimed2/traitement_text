@@ -1,0 +1,9 @@
+{
+    "require": {
+        "wamania/php-stemmer": "^3.0",
+        "textrazor/textrazor-php": "^1.0",
+        "guzzlehttp/guzzle": "^7.9"
+        
+       
+    }
+}
